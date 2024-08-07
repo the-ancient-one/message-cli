@@ -79,7 +79,7 @@ func checkUser(userID string) {
 func checkKeys(userID string) {
 
 	// Check if the Dilithium5 key pair already exists
-	if _, err := os.Stat("storage/" + userID + "/keys/privateKey"); !os.IsNotExist(err) {
+	if _, err := os.Stat("storage/" + userID + "/keys/sign/privateKey"); !os.IsNotExist(err) {
 		fmt.Println("Key pair already exists for " + userID)
 		return
 	} else { // else create a new key pair
@@ -95,8 +95,8 @@ func checkKeys(userID string) {
 		}
 
 		// Create the keys directory if it doesn't exist
-		if _, err := os.Stat("storage/" + userID + "/keys"); os.IsNotExist(err) {
-			err := os.Mkdir("storage/"+userID+"/keys", 0755)
+		if _, err := os.Stat("storage/" + userID + "/keys/sign"); os.IsNotExist(err) {
+			err := os.Mkdir("storage/"+userID+"/keys/sign", 0755)
 			if err != nil {
 				fmt.Println("Failed to create keys directory for User:"+userID, err)
 				return
@@ -104,12 +104,12 @@ func checkKeys(userID string) {
 		}
 
 		// Save the key pair to files
-		err = os.WriteFile("storage/"+userID+"/keys/privateKey", privateKey.Bytes(), 0644)
+		err = os.WriteFile("storage/"+userID+"/keys/sign/privateKey", privateKey.Bytes(), 0644)
 		if err != nil {
 			fmt.Println("Failed to save private key:", err)
 			return
 		}
-		err = os.WriteFile("storage/"+userID+"/keys/publicKey", publicKey.Bytes(), 0644)
+		err = os.WriteFile("storage/"+userID+"/keys/sign/publicKey", publicKey.Bytes(), 0644)
 		if err != nil {
 			fmt.Println("Failed to save public key:", err)
 			return

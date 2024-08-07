@@ -4,6 +4,7 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"os"
 
@@ -42,19 +43,25 @@ func init() {
 
 func SendMsg(userID string, message string) {
 	fmt.Println("Sending message to", userID)
-	fmt.Println("Message:", message)
 
+	// Hash the message
+	hashedMessage := sha256.Sum256([]byte(message))
+	fmt.Printf("Hashed: %x\n", hashedMessage)
+
+	// Determine the mode
 	modename := "Dilithium5"
 
 	mode := dilithium.ModeByName(modename)
 
+	// Convert the message to bytes
 	msg := []byte(message)
 
-	if _, err := os.Stat("storage/" + userID + "/keys/privateKey"); !os.IsNotExist(err) {
+	// Check if the user has a private key
+	if _, err := os.Stat("storage/" + userID + "/keys/sign/privateKey"); !os.IsNotExist(err) {
 
-		pkFile := "storage/" + userID + "/keys/privateKey"
+		pkFile := "storage/" + userID + "/keys/sign/privateKey"
 
-		pubFile := "storage/" + userID + "/keys/publicKey"
+		pubFile := "storage/" + userID + "/keys/sign/publicKey"
 
 		privateKeyBytes, err := os.ReadFile(pkFile)
 		if err != nil {
@@ -68,16 +75,24 @@ func SendMsg(userID string, message string) {
 			return
 		}
 
+		//Load the private key
 		privateKey := mode.PrivateKeyFromBytes(privateKeyBytes)
 
+		//Load the public key
 		publiceKey := mode.PublicKeyFromBytes(publicKeyBytes)
 
-		signature := mode.Sign(privateKey, msg)
+		// append the message to the hash
+		hashedMsg := append(msg, hashedMessage[:]...)
 
-		fmt.Println("Signing the message for " + userID)
+		fmt.Println("Hash + Message:", hashedMsg)
+
+		// Sign the message
+		signature := mode.Sign(privateKey, hashedMsg)
+
 		fmt.Println("Signature Message:", signature[:50])
 
-		if !mode.Verify(publiceKey, msg, signature) {
+		// Verify the signature
+		if !mode.Verify(publiceKey, hashedMsg, signature) {
 			panic("Signature has NOT been verified!")
 		} else {
 			fmt.Printf("Signature has been verified!")
