@@ -31,6 +31,7 @@ to quickly create a Cobra application.`,
 		fmt.Print("Enter user ID: ")
 		fmt.Scanln(&userID)
 
+		fmt.Println("Decrypting the message... ")
 		decryptMessage(userID)
 
 	},
@@ -84,8 +85,10 @@ func decryptMessage(userID string) {
 			return
 		}
 
-		sharedSecret, _ := hex.DecodeString(data["ct"].(string))
+		sharedSecret, _ := hex.DecodeString(data["sharedSecret"].(string))
 		encryptedMessage, _ := hex.DecodeString(data["encryptedMessage"].(string))
+		signature, _ := hex.DecodeString(data["signature"].(string))
+		hash, _ := hex.DecodeString(data["hash"].(string))
 
 		fmt.Println("Shared Secret Hex Len:", len(hex.EncodeToString(sharedSecret)))
 
@@ -95,7 +98,12 @@ func decryptMessage(userID string) {
 			return
 		}
 
-		fmt.Println("Decrypted Message:", len(decryptedCt))
+		fmt.Println("Decrypted Message:", string(decryptedCt))
 
+		// Verify the signature
+		msgcrypto.VerifySig([]byte(decryptedCt), []byte(signature))
+
+		// Verify the hash
+		msgcrypto.VerifyHash([]byte(decryptedCt), []byte(hash))
 	}
 }

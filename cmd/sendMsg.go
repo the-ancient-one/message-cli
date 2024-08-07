@@ -48,11 +48,54 @@ func init() {
 }
 
 func SendMsg(userID string, message string) {
+	hashedMessage, signedMsg := hashSignMsg(userID, message)
+
+	// Encrypt the message
+	sharedSecret, encryptedMessage := encryptMessage([]byte(message), userID)
+	// Save the message
+	saveMessage(userID, hashedMessage, sharedSecret, signedMsg, encryptedMessage)
+}
+
+func saveMessage(userID string, hash []byte, sharedSecret []byte, signedMessage []byte, encryptedMessage []byte) {
+	// Save the encrypted message
+	if _, err := os.Stat("storage/" + userID + "/messages/"); os.IsNotExist(err) {
+		err := os.Mkdir("storage/"+userID+"/messages/", 0755)
+		if err != nil {
+			fmt.Println("Failed to save message:"+userID, err)
+			return
+		}
+	}
+
+	fmt.Println("Saving message...", hex.EncodeToString(encryptedMessage))
+
+	encryptedMsg := map[string]interface{}{
+		"hash":             hex.EncodeToString(hash),
+		"sharedSecret":     hex.EncodeToString(sharedSecret),
+		"signature":        hex.EncodeToString(signedMessage),
+		"encryptedMessage": hex.EncodeToString(encryptedMessage),
+	}
+
+	jsonData, err := json.Marshal(encryptedMsg)
+	if err != nil {
+		fmt.Println("Failed to marshal encrypted message to JSON:", err)
+		return
+	}
+
+	encryptedMsgFile := "storage/" + userID + "/messages/encryptedMsg.json"
+	err = os.WriteFile(encryptedMsgFile, jsonData, 0644)
+	if err != nil {
+		fmt.Println("Failed to save encrypted message to file:", err)
+		return
+	}
+
+	fmt.Println("Message saved successfully")
+}
+
+func hashSignMsg(userID string, message string) ([]byte, []byte) {
 	fmt.Println("Sending message to", userID)
 
 	// Hash the message
 	hashedMessage := sha256.Sum256([]byte(message))
-	fmt.Printf("Hashed: %x\n", hashedMessage)
 
 	// Determine the mode
 	modename := config.SignMode()
@@ -72,13 +115,13 @@ func SendMsg(userID string, message string) {
 		privateKeyBytes, err := os.ReadFile(pkFile)
 		if err != nil {
 			fmt.Println("Failed to read the Self private key file:", err)
-			return
+			return nil, nil
 		}
 
 		publicKeyBytes, err := os.ReadFile(pubFile)
 		if err != nil {
 			fmt.Println("Failed to read the Self Public key file:", err)
-			return
+			return nil, nil
 		}
 
 		//Load the private key
@@ -87,32 +130,27 @@ func SendMsg(userID string, message string) {
 		//Load the public key
 		publiceKey := mode.PublicKeyFromBytes(publicKeyBytes)
 
-		// append the message to the hash
-		hashedMsg := append(msg, hashedMessage[:]...)
-
-		fmt.Println("Hash + Message:", hashedMsg)
-
 		// Sign the message
-		signedMsg := mode.Sign(privateKey, hashedMsg)
-
-		fmt.Println("Signature Message:", signedMsg[:50])
+		signedMsg := mode.Sign(privateKey, msg)
 
 		// Verify the signature
-		if !mode.Verify(publiceKey, hashedMsg, signedMsg) {
+		if !mode.Verify(publiceKey, msg, signedMsg) {
 			panic("Signature has NOT been verified!")
 		} else {
 			fmt.Println("Signature has been verified!")
 		}
 
-		encryptMessage(signedMsg, userID)
+		fmt.Println("Signed Message Hex len:", len(hex.EncodeToString(signedMsg)))
+
+		return hashedMessage[:], signedMsg
 
 	} else {
 		fmt.Println("Failed to get the private key to sign the message.")
 	}
-
+	return nil, nil
 }
 
-func encryptMessage(signedMsg []byte, userID string) {
+func encryptMessage(message []byte, userID string) ([]byte, []byte) {
 
 	meth := config.KemMode()
 
@@ -128,50 +166,24 @@ func encryptMessage(signedMsg []byte, userID string) {
 		publicKeyBytes, err := os.ReadFile(pubFile)
 		if err != nil {
 			fmt.Println("Failed to read the "+userID+" Public key file:", err)
-			return
+			return nil, nil
 		}
 
 		//Load the public key
 		publicKey, _ := scheme.UnmarshalBinaryPublicKey([]byte(publicKeyBytes))
 
-		ct, encryptedMessage, err := msgcrypto.Encrypt(publicKey, eseed, signedMsg)
+		ct, encryptedMessage, err := msgcrypto.Encrypt(publicKey, eseed, message)
 		if err != nil {
 			fmt.Println("Failed to encrypt the message:", err)
-			return
-		}
-
-		// Save the encrypted message
-		if _, err := os.Stat("storage/" + userID + "/messages/"); os.IsNotExist(err) {
-			err := os.Mkdir("storage/"+userID+"/messages/", 0755)
-			if err != nil {
-				fmt.Println("Failed to save message:"+userID, err)
-				return
-			}
+			return nil, nil
 		}
 
 		fmt.Println("Encrypted Message Hex len:", len(hex.EncodeToString(ct)))
-
-		encryptedMsg := map[string]interface{}{
-			"ct":               hex.EncodeToString(ct),
-			"encryptedMessage": hex.EncodeToString(encryptedMessage),
-		}
-
-		jsonData, err := json.Marshal(encryptedMsg)
-		if err != nil {
-			fmt.Println("Failed to marshal encrypted message to JSON:", err)
-			return
-		}
-
-		encryptedMsgFile := "storage/" + userID + "/messages/encryptedMsg.json"
-		err = os.WriteFile(encryptedMsgFile, jsonData, 0644)
-		if err != nil {
-			fmt.Println("Failed to save encrypted message to file:", err)
-			return
-		}
-
+		return ct, encryptedMessage
 		// incrementCounter(userID)
-
-		fmt.Println("Encrypted message saved to", encryptedMsgFile)
+	} else {
+		fmt.Println("Failed to get the public key to encrypt the message.")
+		return nil, nil
 	}
 }
 

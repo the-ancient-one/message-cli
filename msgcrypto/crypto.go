@@ -1,17 +1,22 @@
 package msgcrypto
 
 import (
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"crypto/sha256"
 	"fmt"
 	"io"
+	"message-cli/config"
+	"os"
 
 	"github.com/cloudflare/circl/kem"
 	"github.com/cloudflare/circl/kem/schemes"
+	"github.com/cloudflare/circl/sign/dilithium"
 )
 
-var meth = "Kyber512"
+var meth = config.KemMode()
 
 var scheme = schemes.ByName(meth)
 
@@ -72,4 +77,39 @@ func Decrypt(sk kem.PrivateKey, ct, encryptedMessage []byte) ([]byte, error) {
 	}
 
 	return plaintext, nil
+}
+
+func VerifySig(msg []byte, signedMsg []byte) error {
+
+	modename := config.SignMode()
+
+	mode := dilithium.ModeByName(modename)
+
+	pubFile := "storage/self/keys/sign/publicKeySK"
+
+	publicKeyBytes, err := os.ReadFile(pubFile)
+	if err != nil {
+		fmt.Println("Failed to read the Self Public key file:", err)
+		return err
+	}
+
+	//Load the public key
+	publiceKey := mode.PublicKeyFromBytes(publicKeyBytes)
+
+	if !mode.Verify(publiceKey, msg, signedMsg) {
+		panic("Signature has NOT been verified!")
+	} else {
+		fmt.Println("Signature has been verified!")
+	}
+	return nil
+}
+
+func VerifyHash(msg []byte, hash []byte) error {
+	hashedMessage := sha256.Sum256(msg)
+	if !bytes.Equal(hashedMessage[:], hash) {
+		panic("Hash has NOT been verified!")
+	} else {
+		fmt.Println("Hash has been verified!")
+	}
+	return nil
 }
