@@ -7,8 +7,10 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"message-cli/config"
 	"message-cli/msgcrypto"
 	"os"
+	"strconv"
 
 	"github.com/cloudflare/circl/kem/schemes"
 	"github.com/cloudflare/circl/sign/dilithium"
@@ -52,7 +54,7 @@ func SendMsg(userID string, message string) {
 	fmt.Printf("Hashed: %x\n", hashedMessage)
 
 	// Determine the mode
-	modename := "Dilithium5"
+	modename := config.SignMode()
 
 	mode := dilithium.ModeByName(modename)
 
@@ -111,7 +113,7 @@ func SendMsg(userID string, message string) {
 
 func encryptMessage(signedMsg []byte, userID string) {
 
-	meth := "Kyber512"
+	meth := config.KemMode()
 
 	// Generate Kyber512 Scheme key pair
 
@@ -167,6 +169,40 @@ func encryptMessage(signedMsg []byte, userID string) {
 			return
 		}
 
+		incrementCounter(userID)
+
 		fmt.Println("Encrypted message saved to", encryptedMsgFile)
 	}
+}
+
+func incrementCounter(userID string) {
+	// Read the current counter value from the file
+	counterFile := "storage/" + userID + "/messages/counter.txt"
+	counterBytes, err := os.ReadFile(counterFile)
+	if err != nil {
+		fmt.Println("Failed to read counter file:", err)
+		return
+	}
+
+	// Convert the counter value to an integer
+	counter, err := strconv.Atoi(string(counterBytes))
+	if err != nil {
+		fmt.Println("Failed to convert counter value to integer:", err)
+		return
+	}
+
+	// Increment the counter
+	counter++
+
+	// Convert the counter back to bytes
+	counterBytes = []byte(strconv.Itoa(counter))
+
+	// Write the updated counter value back to the file
+	err = os.WriteFile(counterFile, counterBytes, 0644)
+	if err != nil {
+		fmt.Println("Failed to write counter file:", err)
+		return
+	}
+
+	fmt.Println("Counter incremented to", counter)
 }

@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"fmt"
+	"message-cli/config"
 	"os"
 
 	"github.com/cloudflare/circl/kem/schemes"
@@ -107,7 +108,7 @@ func checkSignKeysPK(userID string) {
 		fmt.Println("Signing Key pair already exists for " + userID)
 		return
 	} else { // else create a new key pair
-		modename := "Dilithium5"
+		modename := config.SignMode()
 
 		// Generate Dilithium5 key pair
 		mode := dilithium.ModeByName(modename)
@@ -149,7 +150,7 @@ func checkKEMKeysPK(userID string) {
 		fmt.Println("KEM Key pair already exists for " + userID)
 		return
 	} else { // else create a new key pair
-		meth := "Kyber512"
+		meth := config.KemMode()
 
 		// Generate Kyber512 Scheme key pair
 		scheme := schemes.ByName(meth)
