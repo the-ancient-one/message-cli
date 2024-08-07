@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"message-cli/config"
@@ -139,9 +140,6 @@ func encryptMessage(signedMsg []byte, userID string) {
 			return
 		}
 
-		fmt.Printf("Ciphertext (shared key encapsulation): %x\n", ct)
-		fmt.Printf("Encrypted Message: %x\n", encryptedMessage)
-
 		// Save the encrypted message
 		if _, err := os.Stat("storage/" + userID + "/messages/"); os.IsNotExist(err) {
 			err := os.Mkdir("storage/"+userID+"/messages/", 0755)
@@ -151,9 +149,11 @@ func encryptMessage(signedMsg []byte, userID string) {
 			}
 		}
 
+		fmt.Println("Encrypted Message Hex len:", len(hex.EncodeToString(ct)))
+
 		encryptedMsg := map[string]interface{}{
-			"ct":               ct,
-			"encryptedMessage": encryptedMessage,
+			"ct":               hex.EncodeToString(ct),
+			"encryptedMessage": hex.EncodeToString(encryptedMessage),
 		}
 
 		jsonData, err := json.Marshal(encryptedMsg)
@@ -169,7 +169,7 @@ func encryptMessage(signedMsg []byte, userID string) {
 			return
 		}
 
-		incrementCounter(userID)
+		// incrementCounter(userID)
 
 		fmt.Println("Encrypted message saved to", encryptedMsgFile)
 	}
