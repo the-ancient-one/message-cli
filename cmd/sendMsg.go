@@ -6,6 +6,7 @@ package cmd
 import (
 	"crypto/sha256"
 	"fmt"
+	"message-cli/config"
 	"os"
 
 	"github.com/cloudflare/circl/sign/dilithium"
@@ -87,19 +88,27 @@ func SendMsg(userID string, message string) {
 		fmt.Println("Hash + Message:", hashedMsg)
 
 		// Sign the message
-		signature := mode.Sign(privateKey, hashedMsg)
+		signedMsg := mode.Sign(privateKey, hashedMsg)
 
-		fmt.Println("Signature Message:", signature[:50])
+		fmt.Println("Signature Message:", signedMsg[:50])
 
 		// Verify the signature
-		if !mode.Verify(publiceKey, hashedMsg, signature) {
+		if !mode.Verify(publiceKey, hashedMsg, signedMsg) {
 			panic("Signature has NOT been verified!")
 		} else {
-			fmt.Printf("Signature has been verified!")
+			fmt.Println("Signature has been verified!")
 		}
+
+		encryptMessage(signedMsg)
 
 	} else {
 		fmt.Println("Failed to get the private key for the User " + userID + " to sign the message.")
 	}
 
+}
+
+func encryptMessage(encryptMsg []byte) {
+	// Encrypt the message
+	fmt.Println("Encrypted the message: ", encryptMsg)
+	fmt.Println("Symmetric password is " + config.AesPasswd())
 }
