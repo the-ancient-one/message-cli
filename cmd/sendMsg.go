@@ -5,10 +5,12 @@ package cmd
 
 import (
 	"crypto/sha256"
+	"encoding/json"
 	"fmt"
-	"message-cli/config"
+	"message-cli/msgcrypto"
 	"os"
 
+	"github.com/cloudflare/circl/kem/schemes"
 	"github.com/cloudflare/circl/sign/dilithium"
 	"github.com/spf13/cobra"
 )
@@ -99,7 +101,7 @@ func SendMsg(userID string, message string) {
 			fmt.Println("Signature has been verified!")
 		}
 
-		encryptMessage(signedMsg)
+		encryptMessage(signedMsg, userID)
 
 	} else {
 		fmt.Println("Failed to get the private key to sign the message.")
@@ -107,8 +109,64 @@ func SendMsg(userID string, message string) {
 
 }
 
-func encryptMessage(signedMsg []byte) {
-	// Encrypt the message
-	fmt.Println("Encrypted the message: ")
-	fmt.Println("Symmetric password is " + config.AesPasswd())
+func encryptMessage(signedMsg []byte, userID string) {
+
+	meth := "Kyber512"
+
+	// Generate Kyber512 Scheme key pair
+
+	scheme := schemes.ByName(meth)
+	eseed := make([]byte, scheme.EncapsulationSeedSize())
+	// Load the public key of the recipient
+	if _, err := os.Stat("storage/" + userID + "/keys/kem/publicKeyKEM"); !os.IsNotExist(err) {
+
+		pubFile := "storage/" + userID + "/keys/kem/publicKeyKEM"
+
+		publicKeyBytes, err := os.ReadFile(pubFile)
+		if err != nil {
+			fmt.Println("Failed to read the "+userID+" Public key file:", err)
+			return
+		}
+
+		//Load the public key
+		publicKey, _ := scheme.UnmarshalBinaryPublicKey([]byte(publicKeyBytes))
+
+		ct, encryptedMessage, err := msgcrypto.Encrypt(publicKey, eseed, signedMsg)
+		if err != nil {
+			fmt.Println("Failed to encrypt the message:", err)
+			return
+		}
+
+		fmt.Printf("Ciphertext (shared key encapsulation): %x\n", ct)
+		fmt.Printf("Encrypted Message: %x\n", encryptedMessage)
+
+		// Save the encrypted message
+		if _, err := os.Stat("storage/" + userID + "/messages/"); os.IsNotExist(err) {
+			err := os.Mkdir("storage/"+userID+"/messages/", 0755)
+			if err != nil {
+				fmt.Println("Failed to save message:"+userID, err)
+				return
+			}
+		}
+
+		encryptedMsg := map[string]interface{}{
+			"ct":               ct,
+			"encryptedMessage": encryptedMessage,
+		}
+
+		jsonData, err := json.Marshal(encryptedMsg)
+		if err != nil {
+			fmt.Println("Failed to marshal encrypted message to JSON:", err)
+			return
+		}
+
+		encryptedMsgFile := "storage/" + userID + "/messages/encryptedMsg.json"
+		err = os.WriteFile(encryptedMsgFile, jsonData, 0644)
+		if err != nil {
+			fmt.Println("Failed to save encrypted message to file:", err)
+			return
+		}
+
+		fmt.Println("Encrypted message saved to", encryptedMsgFile)
+	}
 }

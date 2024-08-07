@@ -151,21 +151,23 @@ func checkKEMKeysPK(userID string) {
 	} else { // else create a new key pair
 		meth := "Kyber512"
 
-		// Generate Dilithium5 key pair
+		// Generate Kyber512 Scheme key pair
 		scheme := schemes.ByName(meth)
 
-		// var seed [48]byte
 		kseed := make([]byte, scheme.SeedSize())
 		eseed := make([]byte, scheme.EncapsulationSeedSize())
-		// for i := 0; i < 48; i++ {
-		// 	seed[i] = byte(i)
-		// }
 
 		pk, sk := scheme.DeriveKeyPair(kseed)
 		publicKey, _ := pk.MarshalBinary()
 		privateKey, _ := sk.MarshalBinary()
-		cipherText, sharedSecretSender, _ := scheme.EncapsulateDeterministically(pk, eseed)
-		sharedSecretReciever, _ := scheme.Decapsulate(sk, cipherText)
+		cipherText, sharedSecretSender, err := scheme.EncapsulateDeterministically(pk, eseed)
+		if err != nil {
+			panic(err)
+		}
+		sharedSecretReciever, err := scheme.Decapsulate(sk, cipherText)
+		if err != nil {
+			panic(err)
+		}
 
 		fmt.Println("Shared sharedSecretSender:", sharedSecretSender)
 		fmt.Println("Shared sharedSecretReciever:", sharedSecretReciever)
@@ -194,38 +196,3 @@ func checkKEMKeysPK(userID string) {
 		fmt.Println("Key pair created successfully for " + userID)
 	}
 }
-
-// func checkKeysSK(userID string) {
-// 	// Check if the symmetric key already exists
-// 	if _, err := os.Stat("storage/" + userID + "/keys/symmetricKey"); !os.IsNotExist(err) {
-// 		fmt.Println("Symmetric key already exists for " + userID)
-// 		return
-// 	} else { // else generate a new symmetric key
-// 		key := make([]byte, 32) // 32 bytes for AES-256
-// 		_, err := rand.Read(key)
-// 		if err != nil {
-// 			fmt.Println("Failed to generate symmetric key:", err)
-// 			return
-// 		}
-
-// 		// Create the keys directory if it doesn't exist
-// 		if _, err := os.Stat("storage/" + userID + "/keys"); os.IsNotExist(err) {
-// 			err := os.Mkdir("storage/"+userID+"/keys", 0755)
-// 			if err != nil {
-// 				fmt.Println("Failed to create keys directory for User:"+userID, err)
-// 				return
-// 			}
-// 		}
-
-// 		fmt.Println("Symmetric password is " + config.AesPasswd())
-
-// 		// Save the symmetric key to file
-// 		err = os.WriteFile("storage/"+userID+"/keys/symmetricKey", key, 0644)
-// 		if err != nil {
-// 			fmt.Println("Failed to save symmetric key:", err)
-// 			return
-// 		}
-
-// 		fmt.Println("Symmetric key generated successfully for " + userID)
-// 	}
-// }

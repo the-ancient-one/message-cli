@@ -15,7 +15,12 @@ func EnvLoad() {
 
 }
 
-func AesPasswd() string {
+func SignMode() string {
 	EnvLoad()
-	return os.Getenv("aesPasswd")
+	return os.Getenv("SignMode")
+}
+
+func KemMode() string {
+	EnvLoad()
+	return os.Getenv("KemMode")
 }
