@@ -57,22 +57,22 @@ func SendMsg(userID string, message string) {
 	// Convert the message to bytes
 	msg := []byte(message)
 
-	// Check if the user has a private key
-	if _, err := os.Stat("storage/" + userID + "/keys/sign/privateKey"); !os.IsNotExist(err) {
+	// Check if the Self has a private key
+	if _, err := os.Stat("storage/self/keys/sign/privateKeySK"); !os.IsNotExist(err) {
 
-		pkFile := "storage/" + userID + "/keys/sign/privateKey"
+		pkFile := "storage/self/keys/sign/privateKeySK"
 
-		pubFile := "storage/" + userID + "/keys/sign/publicKey"
+		pubFile := "storage/self/keys/sign/publicKeySK"
 
 		privateKeyBytes, err := os.ReadFile(pkFile)
 		if err != nil {
-			fmt.Println("Failed to read the private key file:", err)
+			fmt.Println("Failed to read the Self private key file:", err)
 			return
 		}
 
 		publicKeyBytes, err := os.ReadFile(pubFile)
 		if err != nil {
-			fmt.Println("Failed to read the Public key file:", err)
+			fmt.Println("Failed to read the Self Public key file:", err)
 			return
 		}
 
@@ -102,13 +102,13 @@ func SendMsg(userID string, message string) {
 		encryptMessage(signedMsg)
 
 	} else {
-		fmt.Println("Failed to get the private key for the User " + userID + " to sign the message.")
+		fmt.Println("Failed to get the private key to sign the message.")
 	}
 
 }
 
-func encryptMessage(encryptMsg []byte) {
+func encryptMessage(signedMsg []byte) {
 	// Encrypt the message
-	fmt.Println("Encrypted the message: ", encryptMsg)
+	fmt.Println("Encrypted the message: ")
 	fmt.Println("Symmetric password is " + config.AesPasswd())
 }
