@@ -130,7 +130,7 @@ func checkSignKeysPK(userID string) {
 			return
 		}
 
-		fmt.Println("Key pair created successfully for " + userID)
+		fmt.Println("Signing Key pair created successfully for " + userID)
 	}
 }
 
@@ -160,8 +160,8 @@ func checkKEMKeysPK(userID string) {
 			panic(err)
 		}
 
-		fmt.Println("Shared sharedSecretSender:", sharedSecretSender)
-		fmt.Println("Shared sharedSecretReciever:", sharedSecretReciever)
+		fmt.Println("Shared sharedSecretSender testing:", sharedSecretSender)
+		fmt.Println("Shared sharedSecretReciever testing:", sharedSecretReciever)
 
 		// Create the keys directory if it doesn't exist
 		if _, err := os.Stat("storage/" + userID + "/keys/kem"); os.IsNotExist(err) {
@@ -184,6 +184,6 @@ func checkKEMKeysPK(userID string) {
 			return
 		}
 
-		fmt.Println("Key pair created successfully for " + userID)
+		fmt.Println("KEM Key pair created successfully for " + userID)
 	}
 }

@@ -95,7 +95,6 @@ func decryptMessage(userID string) {
 			if !ok || timestamp == 0 {
 				timestamp = 946684800
 			}
-			// fmt.Println("printign time ", time.Unix(timestamp, 0))
 
 			// fmt.Println("Shared Secret Hex Len:", len(hex.EncodeToString(sharedSecret)))
 
