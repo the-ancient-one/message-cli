@@ -79,37 +79,35 @@ func Decrypt(sk kem.PrivateKey, ct, encryptedMessage []byte) ([]byte, error) {
 	return plaintext, nil
 }
 
-func VerifySig(msg []byte, signedMsg []byte) error {
-
+func VerifySig(msg []byte, signedMsg []byte) (bool, error) {
 	modename := config.SignMode()
-
 	mode := dilithium.ModeByName(modename)
 
 	pubFile := "storage/self/keys/sign/publicKeySK"
-
 	publicKeyBytes, err := os.ReadFile(pubFile)
 	if err != nil {
 		fmt.Println("Failed to read the Self Public key file:", err)
-		return err
+		return false, err
 	}
 
-	//Load the public key
-	publiceKey := mode.PublicKeyFromBytes(publicKeyBytes)
+	// Load the public key
+	publicKey := mode.PublicKeyFromBytes(publicKeyBytes)
 
-	if !mode.Verify(publiceKey, msg, signedMsg) {
-		panic("Signature has NOT been verified!")
+	if !mode.Verify(publicKey, msg, signedMsg) {
+		fmt.Println("Signature has NOT been verified!")
+		return false, nil
 	} else {
 		fmt.Println("Signature has been verified!")
+		return true, nil
 	}
-	return nil
 }
 
-func VerifyHash(msg []byte, hash []byte) error {
+func VerifyHash(msg []byte, hash []byte) bool {
 	hashedMessage := sha256.Sum256(msg)
 	if !bytes.Equal(hashedMessage[:], hash) {
 		panic("Hash has NOT been verified!")
 	} else {
 		fmt.Println("Hash has been verified!")
+		return true
 	}
-	return nil
 }

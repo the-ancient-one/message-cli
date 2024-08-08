@@ -10,6 +10,7 @@ import (
 	"message-cli/config"
 	"message-cli/msgcrypto"
 	"os"
+	"strconv"
 
 	"github.com/cloudflare/circl/kem/schemes"
 	"github.com/spf13/cobra"
@@ -18,20 +19,15 @@ import (
 // readMsgCmd represents the readMsg command
 var readMsgCmd = &cobra.Command{
 	Use:   "readMsg",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Access the conversation with the user",
+	Long:  `Access the conversation histroy with the user and listed in table format.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		var userID string
 
 		fmt.Print("Enter user ID: ")
 		fmt.Scanln(&userID)
 
-		fmt.Println("Decrypting the message... ")
+		fmt.Printf("\nDecrypting the message... \n")
 		decryptMessage(userID)
 
 	},
@@ -101,9 +97,19 @@ func decryptMessage(userID string) {
 		fmt.Println("Decrypted Message:", string(decryptedCt))
 
 		// Verify the signature
-		msgcrypto.VerifySig([]byte(decryptedCt), []byte(signature))
+		verifiedHash, err := msgcrypto.VerifySig([]byte(decryptedCt), []byte(signature))
+		if err != nil {
+			fmt.Println("Failed to verify the signature:", err)
+		}
 
 		// Verify the hash
-		msgcrypto.VerifyHash([]byte(decryptedCt), []byte(hash))
+		verifiedSign := msgcrypto.VerifyHash([]byte(decryptedCt), []byte(hash))
+
+		fmt.Println("Conversation:")
+		fmt.Println("--------------------------------------------------")
+		fmt.Printf("| %-15s | %-17s |%-22s |%-17s |\n", "User ID", "Hash Verification", "Signature Verification", "Decrypted Message")
+		fmt.Printf("| %-15s | %-17s |%-22s |%-17s |\n", userID, strconv.FormatBool(verifiedHash), strconv.FormatBool(verifiedSign), string(decryptedCt))
+		fmt.Println("--------------------------------------------------")
+
 	}
 }

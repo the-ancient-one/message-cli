@@ -13,15 +13,10 @@ import (
 // listUsersCmd represents the listUsers command
 var listUsersCmd = &cobra.Command{
 	Use:   "listUsers",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "List all the available users/contacts",
+	Long:  `List all the available users/contacts.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("List of all the available users/contacts:")
+		fmt.Printf("\nList of all the available users/contacts:\n\n")
 		listDirectories()
 	},
 }
@@ -49,9 +44,13 @@ func listDirectories() {
 		return
 	}
 
+	fmt.Println("|----------------------|")
+	fmt.Println("| Available Users/Contacts |")
+	fmt.Println("|----------------------|")
+
 	for _, file := range files {
 		if file.IsDir() {
-			fmt.Println(file.Name())
+			fmt.Printf("| %-20s |\n", file.Name())
 		}
 	}
 }
