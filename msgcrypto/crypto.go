@@ -97,7 +97,6 @@ func VerifySig(msg []byte, signedMsg []byte) (bool, error) {
 		fmt.Println("Signature has NOT been verified!")
 		return false, nil
 	} else {
-		fmt.Println("Signature has been verified!")
 		return true, nil
 	}
 }
@@ -107,7 +106,6 @@ func VerifyHash(msg []byte, hash []byte) bool {
 	if !bytes.Equal(hashedMessage[:], hash) {
 		panic("Hash has NOT been verified!")
 	} else {
-		fmt.Println("Hash has been verified!")
 		return true
 	}
 }

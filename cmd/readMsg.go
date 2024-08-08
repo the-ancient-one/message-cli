@@ -7,10 +7,12 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"message-cli/common"
 	"message-cli/config"
 	"message-cli/msgcrypto"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/cloudflare/circl/kem/schemes"
 	"github.com/spf13/cobra"
@@ -36,15 +38,6 @@ var readMsgCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(readMsgCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// readMsgCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// readMsgCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 func decryptMessage(userID string) {
@@ -67,49 +60,62 @@ func decryptMessage(userID string) {
 		//Load the private key
 		privateKey, _ := scheme.UnmarshalBinaryPrivateKey([]byte(privateKeyBytes))
 
-		encryptedMsgFile := "storage/" + userID + "/messages/encryptedMsg.json"
-		jsonData, err := os.ReadFile(encryptedMsgFile)
-		if err != nil {
-			fmt.Println("Failed to read the encrypted message file:", err)
-			return
-		}
+		// Load the encrypted message
 
-		var data map[string]interface{}
-		err = json.Unmarshal(jsonData, &data)
-		if err != nil {
-			fmt.Println("Failed to unmarshal the encrypted message JSON:", err)
-			return
-		}
-
-		sharedSecret, _ := hex.DecodeString(data["sharedSecret"].(string))
-		encryptedMessage, _ := hex.DecodeString(data["encryptedMessage"].(string))
-		signature, _ := hex.DecodeString(data["signature"].(string))
-		hash, _ := hex.DecodeString(data["hash"].(string))
-
-		fmt.Println("Shared Secret Hex Len:", len(hex.EncodeToString(sharedSecret)))
-
-		decryptedCt, err := msgcrypto.Decrypt(privateKey, []byte(sharedSecret), []byte(encryptedMessage))
-		if err != nil {
-			fmt.Println("Failed to decrypt the message:", err)
-			return
-		}
-
-		fmt.Println("Decrypted Message:", string(decryptedCt))
-
-		// Verify the signature
-		verifiedHash, err := msgcrypto.VerifySig([]byte(decryptedCt), []byte(signature))
-		if err != nil {
-			fmt.Println("Failed to verify the signature:", err)
-		}
-
-		// Verify the hash
-		verifiedSign := msgcrypto.VerifyHash([]byte(decryptedCt), []byte(hash))
+		fmt.Println("Reading the encrypted message files...")
 
 		fmt.Println("Conversation:")
 		fmt.Println("--------------------------------------------------")
-		fmt.Printf("| %-15s | %-17s |%-22s |%-17s |\n", "User ID", "Hash Verification", "Signature Verification", "Decrypted Message")
-		fmt.Printf("| %-15s | %-17s |%-22s |%-17s |\n", userID, strconv.FormatBool(verifiedHash), strconv.FormatBool(verifiedSign), string(decryptedCt))
-		fmt.Println("--------------------------------------------------")
+		fmt.Printf("| %-15s |%-29s| %-17s |%-22s |%-17s  |\n", "User ID", "Timestamp", "Hash Verification", "Signature Verification", "Decrypted Message")
 
+		encryptedMsgFiles, err := common.ListEncryptedMsgFiles(userID)
+		if err != nil {
+			fmt.Println("Failed to list the encrypted message files:", err)
+			return
+		}
+		for _, file := range encryptedMsgFiles {
+			jsonData, err := os.ReadFile(file)
+			if err != nil {
+				fmt.Println("Failed to read the encrypted message file:", err)
+				return
+			}
+
+			var data map[string]interface{}
+			err = json.Unmarshal(jsonData, &data)
+			if err != nil {
+				fmt.Println("Failed to unmarshal the encrypted message JSON:", err)
+				return
+			}
+
+			sharedSecret, _ := hex.DecodeString(data["sharedSecret"].(string))
+			encryptedMessage, _ := hex.DecodeString(data["encryptedMessage"].(string))
+			signature, _ := hex.DecodeString(data["signature"].(string))
+			hash, _ := hex.DecodeString(data["hash"].(string))
+			timestamp, ok := data["timestamp"].(float64)
+			if !ok || timestamp == 0 {
+				timestamp = 946684800
+			}
+			// fmt.Println("printign time ", time.Unix(timestamp, 0))
+
+			// fmt.Println("Shared Secret Hex Len:", len(hex.EncodeToString(sharedSecret)))
+
+			decryptedCt, err := msgcrypto.Decrypt(privateKey, []byte(sharedSecret), []byte(encryptedMessage))
+			if err != nil {
+				fmt.Println("Failed to decrypt the message:", err)
+				return
+			}
+			// Verify the signature
+			verifiedHash, err := msgcrypto.VerifySig([]byte(decryptedCt), []byte(signature))
+			if err != nil {
+				fmt.Println("Failed to verify the signature:", err)
+			}
+
+			// Verify the hash
+			verifiedSign := msgcrypto.VerifyHash([]byte(decryptedCt), []byte(hash))
+
+			fmt.Printf("| %-15s |%-29s| %-17s |%-22s |%-17s  |\n", userID, time.Unix(int64(timestamp), 0), strconv.FormatBool(verifiedHash), strconv.FormatBool(verifiedSign), string(decryptedCt))
+
+		}
+		fmt.Println("--------------------------------------------------")
 	}
 }

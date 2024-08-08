@@ -4,6 +4,7 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"bufio"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -12,6 +13,7 @@ import (
 	"message-cli/msgcrypto"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/cloudflare/circl/kem/schemes"
 	"github.com/cloudflare/circl/sign/dilithium"
@@ -31,7 +33,10 @@ var sendMsgCmd = &cobra.Command{
 		fmt.Scanln(&userID)
 
 		fmt.Print("Enter message: ")
-		fmt.Scanln(&message)
+		scanner := bufio.NewScanner(os.Stdin)
+		if scanner.Scan() {
+			message = scanner.Text()
+		}
 
 		SendMsg(userID, message)
 	},
@@ -68,6 +73,7 @@ func saveMessage(userID string, hash []byte, sharedSecret []byte, signedMessage 
 		"sharedSecret":     hex.EncodeToString(sharedSecret),
 		"signature":        hex.EncodeToString(signedMessage),
 		"encryptedMessage": hex.EncodeToString(encryptedMessage),
+		"timestamp":        time.Now().Unix(),
 	}
 
 	jsonData, err := json.Marshal(encryptedMsg)
@@ -76,7 +82,9 @@ func saveMessage(userID string, hash []byte, sharedSecret []byte, signedMessage 
 		return
 	}
 
-	encryptedMsgFile := "storage/" + userID + "/messages/encryptedMsg.json"
+	msgNumber := incrementCounter(userID)
+
+	encryptedMsgFile := "storage/" + userID + "/messages/encryptedMsg-" + strconv.Itoa(msgNumber) + ".json"
 	err = os.WriteFile(encryptedMsgFile, jsonData, 0644)
 	if err != nil {
 		fmt.Println("Failed to save encrypted message to file:", err)
@@ -175,27 +183,37 @@ func encryptMessage(message []byte, userID string) ([]byte, []byte) {
 
 		fmt.Println("Encrypted Message Hex len:", len(hex.EncodeToString(ct)))
 		return ct, encryptedMessage
-		// incrementCounter(userID)
 	} else {
 		fmt.Println("Failed to get the public key to encrypt the message.")
 		return nil, nil
 	}
 }
 
-func incrementCounter(userID string) {
+func incrementCounter(userID string) int {
+	defaultCounter := 0
 	// Read the current counter value from the file
 	counterFile := "storage/" + userID + "/messages/counter.txt"
 	counterBytes, err := os.ReadFile(counterFile)
 	if err != nil {
-		fmt.Println("Failed to read counter file:", err)
-		return
+		if os.IsNotExist(err) {
+			// Create the file and write 0
+			err = os.WriteFile(counterFile, []byte(strconv.Itoa(defaultCounter)), 0644)
+			if err != nil {
+				fmt.Println("Failed to create counter file:", err)
+				return 0
+			}
+			counterBytes = []byte("0")
+		} else {
+			fmt.Println("Failed to read counter file:", err)
+			return 0
+		}
 	}
 
 	// Convert the counter value to an integer
 	counter, err := strconv.Atoi(string(counterBytes))
 	if err != nil {
 		fmt.Println("Failed to convert counter value to integer:", err)
-		return
+		return 0
 	}
 
 	// Increment the counter
@@ -208,8 +226,8 @@ func incrementCounter(userID string) {
 	err = os.WriteFile(counterFile, counterBytes, 0644)
 	if err != nil {
 		fmt.Println("Failed to write counter file:", err)
-		return
+		return 0
 	}
 
-	fmt.Println("Counter incremented to", counter)
+	return counter
 }
