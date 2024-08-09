@@ -5,10 +5,13 @@ package cmd
 
 import (
 	"fmt"
+	"message-cli/common"
 	"os"
 
 	"github.com/spf13/cobra"
 )
+
+var slog = common.SetupLogger()
 
 // listUsersCmd represents the listUsers command
 var listUsersCmd = &cobra.Command{
@@ -17,6 +20,8 @@ var listUsersCmd = &cobra.Command{
 	Long:  `List all the available users/contacts.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Printf("\nList of all the available users/contacts:\n\n")
+
+		slog.Info("Listing all the available users/contacts")
 		listDirectories()
 	},
 }
