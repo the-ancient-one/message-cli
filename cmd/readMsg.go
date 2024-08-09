@@ -18,29 +18,38 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Global variable to store the user ID for the readMsg and sendMsg command
+var userID string
+
 // readMsgCmd represents the readMsg command
 var readMsgCmd = &cobra.Command{
 	Use:   "readMsg",
 	Short: "Access the conversation with the user",
 	Long:  `Access the conversation histroy with the user and listed in table format.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		var userID string
 
-		fmt.Print("Enter user ID: ")
-		fmt.Scanln(&userID)
+		if userID == "" {
+			fmt.Print("Enter user ID: ")
+			fmt.Scanln(&userID)
+		}
 
-		fmt.Printf("\nDecrypting the message... \n")
-
-		slog.Info("Decrypting the message called")
-		decryptMessage(userID)
-		slog.Info("Completed the message decryption")
+		if !common.CheckUserExists(userID) {
+			fmt.Println("User does not exist")
+			slog.Error("Queried User does not exist" + userID)
+			return
+		} else {
+			slog.Info("Decrypting the message called")
+			fmt.Printf("\nDecrypting the message... \n")
+			decryptMessage(userID)
+			slog.Info("Completed the message decryption")
+		}
 
 	},
 }
 
 func init() {
+	readMsgCmd.Flags().StringVarP(&userID, "userID", "u", "", "User ID")
 	rootCmd.AddCommand(readMsgCmd)
-
 }
 
 func decryptMessage(userID string) {

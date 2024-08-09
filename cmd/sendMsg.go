@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"message-cli/common"
 	"message-cli/config"
 	"message-cli/msgcrypto"
 	"os"
@@ -20,32 +21,47 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var message string
+
 // sendMsgCmd represents the sendMsg command
 var sendMsgCmd = &cobra.Command{
 	Use:   "sendMsg",
 	Short: "Send a message to a user",
 	Long:  `Send message to a user. You will be prompted to enter the user ID and message to send. You need to create a user before sending a message.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		var userID string
-		var message string
 
-		fmt.Print("Enter user ID: ")
-		fmt.Scanln(&userID)
-
-		fmt.Print("Enter message: ")
-		scanner := bufio.NewScanner(os.Stdin)
-		if scanner.Scan() {
-			message = scanner.Text()
+		if userID == "" {
+			fmt.Print("Enter user ID: ")
+			fmt.Scanln(&userID)
 		}
-		slog.Info("Sending the message to the user")
-		SendMsg(userID, message)
-		slog.Info("Message sent to the user")
+
+		if !common.CheckUserExists(userID) {
+			fmt.Printf("\nUser does not exist\n\n")
+			slog.Error("Queried User does not exist" + userID)
+			fmt.Println("Below listed are the existsing contacts.")
+			ListDirectories()
+
+			fmt.Printf("\nTo create new users, please refer the command `message-cli userID`\n\n")
+			return
+		} else {
+			if message == "" {
+				fmt.Print("Enter message: ")
+				scanner := bufio.NewScanner(os.Stdin)
+				if scanner.Scan() {
+					message = scanner.Text()
+				}
+			}
+			slog.Info("Sending the message to the user")
+			SendMsg(userID, message)
+			slog.Info("Message sent to the user")
+		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(sendMsgCmd)
-
+	sendMsgCmd.Flags().StringVarP(&userID, "userID", "u", "", "User ID")
+	sendMsgCmd.Flags().StringVarP(&message, "message", "m", "", "Message to send")
 }
 
 func SendMsg(userID string, message string) {

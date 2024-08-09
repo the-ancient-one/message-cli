@@ -176,9 +176,9 @@ func checkKEMKeysPK(userID string) {
 		}
 
 		fmt.Println("Shared sharedSecretSender testing:", sharedSecretSender)
-		slog.Info("Shared sharedSecretSender testing:", sharedSecretSender)
+		slog.Info("Shared sharedSecretSender testing:" + string(sharedSecretSender))
 		fmt.Println("Shared sharedSecretReciever testing:", sharedSecretReciever)
-		slog.Info("Shared sharedSecretReciever testing:", sharedSecretReciever)
+		slog.Info("Shared sharedSecretReciever testing:" + string(sharedSecretReciever))
 
 		// Create the keys directory if it doesn't exist
 		if _, err := os.Stat("storage/" + userID + "/keys/kem"); os.IsNotExist(err) {

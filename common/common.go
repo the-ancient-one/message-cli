@@ -49,3 +49,15 @@ func ListEncryptedMsgFiles(userID string) ([]string, error) {
 
 	return encryptedMsgFiles, nil
 }
+
+func CheckUserExists(directoryPath string) bool {
+	directoryPath = filepath.Clean("storage/" + directoryPath)
+	fileInfo, err := os.Stat(directoryPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+		panic(err)
+	}
+	return fileInfo.IsDir()
+}
