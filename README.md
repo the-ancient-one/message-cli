@@ -144,6 +144,16 @@ To use the application, follow these steps:
 
 3. Follow the on-screen instructions to interact with the messaging system.
 
+### Flags 
+
+```
+Sending message using the flags.
+./message-cli sendMsg -u=345 -m="dqwdwd grtgrtg Hellow"
+
+Reading the message with flags. 
+./message-cli readMsg -u=345
+```
+
 ## License
 
 Most code is released under the New BSD (3 Clause) License. If subdirectories
