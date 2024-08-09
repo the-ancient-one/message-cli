@@ -14,6 +14,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// For slog logger check the root.go file in the same directory
+
 // userIDCmd represents the userID command
 var userIDCmd = &cobra.Command{
 	Use:   "userID",
@@ -39,10 +41,13 @@ var userIDCmd = &cobra.Command{
 			if scanner.Scan() {
 				message = scanner.Text()
 			}
+			slog.Info("Sending the message to the user")
 			// Send the message
 			SendMsg(userID, message)
+			slog.Info("Completed the message sending")
 		} else {
 			fmt.Println("Message not sent.")
+			slog.Error("Message not sent")
 		}
 
 	},
@@ -59,9 +64,11 @@ func checkUser(userID string) {
 		err := os.Mkdir("storage/"+userID, 0755)
 		if err != nil {
 			fmt.Println("Failed to create User:"+userID, err)
+			slog.Error("Failed to create User:" + userID)
 			return
 		}
 		fmt.Println("User" + userID + " created successfully")
+		slog.Info("User" + userID + " created successfully")
 	} else {
 		fmt.Println("User " + userID + " exists")
 	}
@@ -85,6 +92,7 @@ func checkKeysDir(userID string) {
 		err := os.Mkdir("storage/"+userID+"/keys", 0755)
 		if err != nil {
 			fmt.Println("Failed to create keys directory for User:"+userID, err)
+			slog.Error("Failed to create keys directory for User:" + userID)
 			return
 		}
 	}
@@ -96,6 +104,7 @@ func checkSignKeysPK(userID string) {
 	// Check if the Dilithium5 key pair already exists
 	if _, err := os.Stat("storage/" + userID + "/keys/sign/privateKeySK"); !os.IsNotExist(err) {
 		fmt.Println("Signing Key pair already exists for " + userID)
+		slog.Info("Signing Key pair already exists for " + userID)
 		return
 	} else { // else create a new key pair
 		modename := config.SignMode()
@@ -106,6 +115,7 @@ func checkSignKeysPK(userID string) {
 		publicKey, privateKey, err := mode.GenerateKey(nil)
 		if err != nil {
 			fmt.Println("Failed to generate Key pair:", err)
+			slog.Error("Failed to generate Key pair:" + err.Error())
 			return
 		}
 
@@ -114,6 +124,7 @@ func checkSignKeysPK(userID string) {
 			err := os.Mkdir("storage/"+userID+"/keys/sign", 0755)
 			if err != nil {
 				fmt.Println("Failed to create keys directory for User:"+userID, err)
+				slog.Error("Failed to create keys directory for User:" + userID)
 				return
 			}
 		}
@@ -122,15 +133,18 @@ func checkSignKeysPK(userID string) {
 		err = os.WriteFile("storage/"+userID+"/keys/sign/privateKeySK", privateKey.Bytes(), 0644)
 		if err != nil {
 			fmt.Println("Failed to save private key:", err)
+			slog.Error("Failed to save private key:" + err.Error())
 			return
 		}
 		err = os.WriteFile("storage/"+userID+"/keys/sign/publicKeySK", publicKey.Bytes(), 0644)
 		if err != nil {
 			fmt.Println("Failed to save public key:", err)
+			slog.Error("Failed to save public key:" + err.Error())
 			return
 		}
 
 		fmt.Println("Signing Key pair created successfully for " + userID)
+		slog.Info("Signing Key pair created successfully for " + userID)
 	}
 }
 
@@ -138,6 +152,7 @@ func checkKEMKeysPK(userID string) {
 	// Check if the KEM key pair already exists
 	if _, err := os.Stat("storage/" + userID + "/keys/kem/privateKeyKEM"); !os.IsNotExist(err) {
 		fmt.Println("KEM Key pair already exists for " + userID)
+		slog.Info("KEM Key pair already exists for " + userID)
 		return
 	} else { // else create a new key pair
 		meth := config.KemMode()
@@ -161,13 +176,16 @@ func checkKEMKeysPK(userID string) {
 		}
 
 		fmt.Println("Shared sharedSecretSender testing:", sharedSecretSender)
+		slog.Info("Shared sharedSecretSender testing:", sharedSecretSender)
 		fmt.Println("Shared sharedSecretReciever testing:", sharedSecretReciever)
+		slog.Info("Shared sharedSecretReciever testing:", sharedSecretReciever)
 
 		// Create the keys directory if it doesn't exist
 		if _, err := os.Stat("storage/" + userID + "/keys/kem"); os.IsNotExist(err) {
 			err := os.Mkdir("storage/"+userID+"/keys/kem", 0755)
 			if err != nil {
 				fmt.Println("Failed to create keys directory for User:"+userID, err)
+				slog.Error("Failed to create keys directory for User:" + userID)
 				return
 			}
 		}
@@ -176,14 +194,17 @@ func checkKEMKeysPK(userID string) {
 		err = os.WriteFile("storage/"+userID+"/keys/kem/privateKeyKEM", privateKey, 0644)
 		if err != nil {
 			fmt.Println("Failed to save private key:", err)
+			slog.Error("Failed to save private key:" + err.Error())
 			return
 		}
 		err = os.WriteFile("storage/"+userID+"/keys/kem/publicKeyKEM", publicKey, 0644)
 		if err != nil {
 			fmt.Println("Failed to save public key:", err)
+			slog.Error("Failed to save public key:" + err.Error())
 			return
 		}
 
 		fmt.Println("KEM Key pair created successfully for " + userID)
+		slog.Info("KEM Key pair created successfully for " + userID)
 	}
 }

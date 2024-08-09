@@ -37,8 +37,9 @@ var sendMsgCmd = &cobra.Command{
 		if scanner.Scan() {
 			message = scanner.Text()
 		}
-
+		slog.Info("Sending the message to the user")
 		SendMsg(userID, message)
+		slog.Info("Message sent to the user")
 	},
 }
 
@@ -48,11 +49,14 @@ func init() {
 }
 
 func SendMsg(userID string, message string) {
+	slog.Info("Hashing the message to the user" + userID)
 	hashedMessage, signedMsg := hashSignMsg(userID, message)
 
 	// Encrypt the message
+	slog.Info("Encrypting the message to the user" + userID)
 	sharedSecret, encryptedMessage := encryptMessage([]byte(message), userID)
 	// Save the message
+	slog.Info("Saving the message to the user" + userID)
 	saveMessage(userID, hashedMessage, sharedSecret, signedMsg, encryptedMessage)
 }
 
@@ -62,11 +66,13 @@ func saveMessage(userID string, hash []byte, sharedSecret []byte, signedMessage 
 		err := os.Mkdir("storage/"+userID+"/messages/", 0755)
 		if err != nil {
 			fmt.Println("Failed to save message:"+userID, err)
+			slog.Error("Failed to save message:" + userID + err.Error())
 			return
 		}
 	}
 
 	fmt.Println("Saving message...", hex.EncodeToString(encryptedMessage))
+	slog.Info("Saving message to the user" + userID + hex.EncodeToString(encryptedMessage))
 
 	encryptedMsg := map[string]interface{}{
 		"hash":             hex.EncodeToString(hash),
@@ -79,6 +85,7 @@ func saveMessage(userID string, hash []byte, sharedSecret []byte, signedMessage 
 	jsonData, err := json.Marshal(encryptedMsg)
 	if err != nil {
 		fmt.Println("Failed to marshal encrypted message to JSON:", err)
+		slog.Error("Failed to marshal encrypted message to JSON:" + err.Error())
 		return
 	}
 
@@ -88,10 +95,12 @@ func saveMessage(userID string, hash []byte, sharedSecret []byte, signedMessage 
 	err = os.WriteFile(encryptedMsgFile, jsonData, 0644)
 	if err != nil {
 		fmt.Println("Failed to save encrypted message to file:", err)
+		slog.Error("Failed to save encrypted message to file:" + err.Error())
 		return
 	}
 
 	fmt.Println("Message saved successfully")
+	slog.Info("Message saved successfully" + userID)
 }
 
 func hashSignMsg(userID string, message string) ([]byte, []byte) {
@@ -118,12 +127,14 @@ func hashSignMsg(userID string, message string) ([]byte, []byte) {
 		privateKeyBytes, err := os.ReadFile(pkFile)
 		if err != nil {
 			fmt.Println("Failed to read the Self private key file:", err)
+			slog.Error("Failed to read the Self private key file" + err.Error())
 			return nil, nil
 		}
 
 		publicKeyBytes, err := os.ReadFile(pubFile)
 		if err != nil {
 			fmt.Println("Failed to read the Self Public key file:", err)
+			slog.Error("Failed to read the Self Public key file" + err.Error())
 			return nil, nil
 		}
 
@@ -138,17 +149,21 @@ func hashSignMsg(userID string, message string) ([]byte, []byte) {
 
 		// Verify the signature
 		if !mode.Verify(publiceKey, msg, signedMsg) {
+			slog.Error("Signature has NOT been verified!")
 			panic("Signature has NOT been verified!")
 		} else {
 			fmt.Println("Signature has been verified!")
+			slog.Info("Signature has been verified!")
 		}
 
 		fmt.Println("Signed Message Hex len:", len(hex.EncodeToString(signedMsg)))
+		slog.Info("Signed Message Hex len:" + strconv.Itoa(len(hex.EncodeToString(signedMsg))))
 
 		return hashedMessage[:], signedMsg
 
 	} else {
 		fmt.Println("Failed to get the private key to sign the message.")
+		slog.Error("Failed to get the private key to sign the message." + userID)
 	}
 	return nil, nil
 }
@@ -169,6 +184,7 @@ func encryptMessage(message []byte, userID string) ([]byte, []byte) {
 		publicKeyBytes, err := os.ReadFile(pubFile)
 		if err != nil {
 			fmt.Println("Failed to read the "+userID+" Public key file:", err)
+			slog.Error("Failed to read the public key file" + err.Error())
 			return nil, nil
 		}
 
@@ -178,6 +194,7 @@ func encryptMessage(message []byte, userID string) ([]byte, []byte) {
 		ct, encryptedMessage, err := msgcrypto.Encrypt(publicKey, eseed, message)
 		if err != nil {
 			fmt.Println("Failed to encrypt the message:", err)
+			slog.Error("Failed to encrypt the message" + err.Error())
 			return nil, nil
 		}
 
@@ -185,6 +202,7 @@ func encryptMessage(message []byte, userID string) ([]byte, []byte) {
 		return ct, encryptedMessage
 	} else {
 		fmt.Println("Failed to get the public key to encrypt the message.")
+		slog.Error("Failed to get the public key to encrypt the message" + userID)
 		return nil, nil
 	}
 }
@@ -200,11 +218,13 @@ func incrementCounter(userID string) int {
 			err = os.WriteFile(counterFile, []byte(strconv.Itoa(defaultCounter)), 0644)
 			if err != nil {
 				fmt.Println("Failed to create counter file:", err)
+				slog.Error("Failed to create counter file" + err.Error())
 				return 0
 			}
 			counterBytes = []byte("0")
 		} else {
 			fmt.Println("Failed to read counter file:", err)
+			slog.Error("Failed to read counter file" + err.Error())
 			return 0
 		}
 	}
@@ -213,6 +233,7 @@ func incrementCounter(userID string) int {
 	counter, err := strconv.Atoi(string(counterBytes))
 	if err != nil {
 		fmt.Println("Failed to convert counter value to integer:", err)
+		slog.Error("Failed to convert counter value to integer" + err.Error())
 		return 0
 	}
 
@@ -226,6 +247,7 @@ func incrementCounter(userID string) int {
 	err = os.WriteFile(counterFile, counterBytes, 0644)
 	if err != nil {
 		fmt.Println("Failed to write counter file:", err)
+		slog.Error("Failed to write counter file" + err.Error())
 		return 0
 	}
 

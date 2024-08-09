@@ -4,10 +4,14 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"message-cli/common"
 	"os"
 
 	"github.com/spf13/cobra"
 )
+
+// Logging declaration for the rest of the packages to be used for logging
+var slog = common.SetupLogger()
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{

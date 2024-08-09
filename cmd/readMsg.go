@@ -30,7 +30,10 @@ var readMsgCmd = &cobra.Command{
 		fmt.Scanln(&userID)
 
 		fmt.Printf("\nDecrypting the message... \n")
+
+		slog.Info("Decrypting the message called")
 		decryptMessage(userID)
+		slog.Info("Completed the message decryption")
 
 	},
 }
@@ -54,6 +57,7 @@ func decryptMessage(userID string) {
 		privateKeyBytes, err := os.ReadFile(pubFile)
 		if err != nil {
 			fmt.Println("Failed to read the "+userID+" Private key file:", err)
+			slog.Error("Failed to read the private key file" + err.Error())
 			return
 		}
 
@@ -63,6 +67,7 @@ func decryptMessage(userID string) {
 		// Load the encrypted message
 
 		fmt.Println("Reading the encrypted message files...")
+		slog.Info("Reading the encrypted message files")
 
 		fmt.Println("Conversation:")
 		fmt.Println("--------------------------------------------------")
@@ -71,12 +76,14 @@ func decryptMessage(userID string) {
 		encryptedMsgFiles, err := common.ListEncryptedMsgFiles(userID)
 		if err != nil {
 			fmt.Println("Failed to list the encrypted message files:", err)
+			slog.Error("Failed to list the encrypted message files" + err.Error())
 			return
 		}
 		for _, file := range encryptedMsgFiles {
 			jsonData, err := os.ReadFile(file)
 			if err != nil {
 				fmt.Println("Failed to read the encrypted message file:", err)
+				slog.Error("Failed to read the encrypted message file" + err.Error())
 				return
 			}
 
@@ -84,6 +91,7 @@ func decryptMessage(userID string) {
 			err = json.Unmarshal(jsonData, &data)
 			if err != nil {
 				fmt.Println("Failed to unmarshal the encrypted message JSON:", err)
+				slog.Error("Failed to unmarshal the encrypted message JSON" + err.Error())
 				return
 			}
 
@@ -101,12 +109,14 @@ func decryptMessage(userID string) {
 			decryptedCt, err := msgcrypto.Decrypt(privateKey, []byte(sharedSecret), []byte(encryptedMessage))
 			if err != nil {
 				fmt.Println("Failed to decrypt the message:", err)
+				slog.Error("Failed to decrypt the message: " + err.Error())
 				return
 			}
 			// Verify the signature
 			verifiedHash, err := msgcrypto.VerifySig([]byte(decryptedCt), []byte(signature))
 			if err != nil {
 				fmt.Println("Failed to verify the signature:", err)
+				slog.Error("Failed to verify the signature" + err.Error())
 			}
 
 			// Verify the hash
