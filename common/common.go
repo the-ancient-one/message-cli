@@ -1,9 +1,25 @@
 package common
 
 import (
+	"log/slog"
+	"message-cli/config"
 	"os"
 	"path/filepath"
 )
+
+func SetupLogger() *slog.Logger {
+	var logfile = config.LogFile()
+	file, err := os.OpenFile(logfile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		panic(err)
+	}
+
+	var handlerOpts = &slog.HandlerOptions{Level: slog.LevelDebug, AddSource: true}
+
+	logger := slog.New(slog.NewJSONHandler(file, handlerOpts))
+
+	return logger
+}
 
 func ListEncryptedMsgFiles(userID string) ([]string, error) {
 	messagesFolder := "storage/" + userID + "/messages/"
