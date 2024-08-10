@@ -24,6 +24,7 @@ A MSc Dissertation work on the PQC messaging system using the Circl(Cloudflare) 
 | logs/| Logging directory for the application acctiivties |
 | storage/| All the application related files and keys stored | 
 | msgcrypto/ | Cryptographic alogroithm and logic |
+| .env | Environmental file to store and declare the variables |
 
 ### Folder Structure Tree 
 
