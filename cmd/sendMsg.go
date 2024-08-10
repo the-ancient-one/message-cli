@@ -19,6 +19,7 @@ import (
 	"github.com/cloudflare/circl/kem/schemes"
 	"github.com/cloudflare/circl/sign/dilithium"
 	"github.com/spf13/cobra"
+	"golang.org/x/exp/rand"
 )
 
 var message string
@@ -192,6 +193,12 @@ func encryptMessage(message []byte, userID string) ([]byte, []byte) {
 
 	scheme := schemes.ByName(meth)
 	eseed := make([]byte, scheme.EncapsulationSeedSize())
+	for i := 0; i < scheme.EncapsulationSeedSize(); i++ {
+		rand.Seed(uint64(time.Now().UnixNano()))
+		eseed[i] = byte(rand.Intn(255))
+	}
+	p_eseed := hex.EncodeToString(eseed)
+	fmt.Println("Encapsulation Seed complete :", p_eseed)
 	// Load the public key of the recipient
 	if _, err := os.Stat("storage/" + userID + "/keys/kem/publicKeyKEM"); !os.IsNotExist(err) {
 

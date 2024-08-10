@@ -6,6 +6,7 @@ require (
 	github.com/cloudflare/circl v1.3.9
 	github.com/joho/godotenv v1.5.1
 	github.com/spf13/cobra v1.8.1
+	golang.org/x/exp v0.0.0-20240808152545-0cdaa3abc0fa
 )
 
 require (
