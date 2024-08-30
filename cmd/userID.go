@@ -1,5 +1,5 @@
 /*
-Copyright © 2024 NAME HERE <EMAIL ADDRESS>
+userID.go has the implementation of the command line to create a new user/contact.
 */
 package cmd
 
@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/the-ancient-one/message-cli/common"
 	"github.com/the-ancient-one/message-cli/config"
 
 	"github.com/cloudflare/circl/kem/schemes"
@@ -78,15 +77,15 @@ func checkUser(userID string) {
 	// Check if the user has a keys directory
 	checkKeysDir(userID)
 
-	before_mem, before_cpu, _ := common.GetSystemStats()
+	// before_mem, before_cpu, _ := common.GetSystemStats()
 	// Check if the user has a signing key pair
 	checkSignKeysPK(userID)
-	after_mem, after_cpu, _ := common.GetSystemStats()
+	// after_mem, after_cpu, _ := common.GetSystemStats()
 
-	used_cpu := float64(after_cpu.Total - before_cpu.Total)
-	used_mem := float64(after_mem.Total - before_mem.Total)
-	fmt.Printf("cpu user: %f %%\n", float64(after_cpu.User-before_cpu.User)/used_cpu*100)
-	fmt.Printf("mem user: %f %%\n", float64(after_mem.Used-before_mem.Used)/used_mem*100)
+	// used_cpu := float64(after_cpu.Total - before_cpu.Total)
+	// used_mem := float64(after_mem.Total - before_mem.Total)
+	// fmt.Printf("cpu user: %f %%\n", float64(after_cpu.User-before_cpu.User)/used_cpu*100)
+	// fmt.Printf("mem user: %f %%\n", float64(after_mem.Used-before_mem.Used)/used_mem*100)
 
 	// Check if the user has a KEM key pair
 	checkKEMKeysPK(userID)

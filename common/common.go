@@ -1,3 +1,6 @@
+/*
+common provides common functions for the message-cli application.
+*/
 package common
 
 import (
@@ -11,6 +14,7 @@ import (
 	"github.com/mackerelio/go-osstat/memory"
 )
 
+// SetupLogger sets up the logger for the application
 func SetupLogger() *slog.Logger {
 	var logfile = config.LogFile()
 	file, err := os.OpenFile(logfile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
@@ -25,6 +29,7 @@ func SetupLogger() *slog.Logger {
 	return logger
 }
 
+// ListEncryptedMsgFiles lists all the encrypted message files in the user's directory
 func ListEncryptedMsgFiles(userID string) ([]string, error) {
 	messagesFolder := "storage/" + userID + "/messages/"
 	pattern := "encryptedMsg*"
@@ -54,6 +59,7 @@ func ListEncryptedMsgFiles(userID string) ([]string, error) {
 	return encryptedMsgFiles, nil
 }
 
+// CheckUserExists checks if the user exists in the storage directory
 func CheckUserExists(directoryPath string) bool {
 	directoryPath = filepath.Clean("storage/" + directoryPath)
 	fileInfo, err := os.Stat(directoryPath)
@@ -66,6 +72,7 @@ func CheckUserExists(directoryPath string) bool {
 	return fileInfo.IsDir()
 }
 
+// GetSystemStats returns the system stats for the application
 func GetSystemStats() (*memory.Stats, *cpu.Stats, error) {
 	mem, err := memory.Get()
 	if err != nil {

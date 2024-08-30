@@ -1,3 +1,9 @@
+/*
+msgcrypto provides cryptography functions for the message-cli application.
+The Encrypt and Decrypt function = Kyber KEM public key + AES-GCM (256).
+The VerifySig function = Dilithium signature scheme.
+The VerifyHash = SHA-256 hash function.
+*/
 package msgcrypto
 
 import (
@@ -21,6 +27,7 @@ var meth = config.KemMode()
 
 var scheme = schemes.ByName(meth)
 
+// Encrypt encrypts the plaintext using the Kyber KEM public key with the seed (scheme.EncapsulateDeterministically) and returns the ciphertext, encryptedMessage.
 func Encrypt(pk kem.PublicKey, seed, plaintext []byte) (ciphertext, encryptedMessage []byte, err error) {
 	// Generate shared secret and ciphertext deterministically
 	ct, ss, err := scheme.EncapsulateDeterministically(pk, seed)
@@ -48,6 +55,7 @@ func Encrypt(pk kem.PublicKey, seed, plaintext []byte) (ciphertext, encryptedMes
 	return ct, encryptedMessage, nil
 }
 
+// Decrypt decrypts the encryptedMessage using the Kyber KEM private key (scheme.Decapsulate) with the ciphertext and returns the plaintext.
 func Decrypt(sk kem.PrivateKey, ct, encryptedMessage []byte) ([]byte, error) {
 	// Decapsulate the shared secret key
 	ss, err := scheme.Decapsulate(sk, ct)
@@ -80,6 +88,7 @@ func Decrypt(sk kem.PrivateKey, ct, encryptedMessage []byte) ([]byte, error) {
 	return plaintext, nil
 }
 
+// VerifySig verifies the signature of the message using the public key of the Dilithium signature scheme.
 func VerifySig(msg []byte, signedMsg []byte) (bool, error) {
 	modename := config.SignMode()
 	mode := dilithium.ModeByName(modename)
@@ -102,6 +111,7 @@ func VerifySig(msg []byte, signedMsg []byte) (bool, error) {
 	}
 }
 
+// VerifyHash verifies the hash of the message using the SHA-256 hash function.
 func VerifyHash(msg []byte, hash []byte) bool {
 	hashedMessage := sha256.Sum256(msg)
 	if !bytes.Equal(hashedMessage[:], hash) {

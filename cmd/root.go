@@ -1,5 +1,6 @@
 /*
-Copyright © 2024 NAME HERE <EMAIL ADDRESS>
+Root command for the message-cli application. This is the entry point for the application.
+The root command is the base command when called without any subcommands. This is where all the child commands are added and the flags are set appropriately.
 */
 package cmd
 

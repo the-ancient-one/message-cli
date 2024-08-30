@@ -1,5 +1,5 @@
 /*
-Copyright © 2024 NAME HERE <EMAIL ADDRESS>
+readMsg.go reads the encrypted message files and decrypts the message using the recipient's private key.
 */
 package cmd
 

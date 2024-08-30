@@ -1,5 +1,5 @@
 /*
-Copyright © 2024 NAME HERE <EMAIL ADDRESS>
+listUsers.go contains the code for the listUsers command. This command lists all the available users/contacts in the storage directory.
 */
 package cmd
 
@@ -29,6 +29,7 @@ func init() {
 	rootCmd.AddCommand(listUsersCmd)
 }
 
+// ListDirectories lists all the directories in the storage directory
 func ListDirectories() {
 	storageDir := "storage" // Replace with the actual path to the storage directory
 

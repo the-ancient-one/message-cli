@@ -1,5 +1,5 @@
 /*
-Copyright © 2024 NAME HERE <EMAIL ADDRESS>
+sendMsg.go has the implementation of the sendMsg command
 */
 package cmd
 
@@ -68,6 +68,7 @@ func init() {
 	sendMsgCmd.Flags().BoolP("help", "h", false, "command supports -u and -m flags, sample usage sendMsg -u=345 -m='Hello World'")
 }
 
+// SendMsg sends a message to the user with the given user ID and message
 func SendMsg(userID string, message string) {
 	slog.Info("Hashing the message to the user" + userID)
 	hashedMessage, signedMsg := hashSignMsg(userID, message)
@@ -76,7 +77,7 @@ func SendMsg(userID string, message string) {
 	slog.Info("Encrypting the message to the user" + userID)
 	sharedSecret, encryptedMessage := encryptMessage([]byte(message), userID)
 	// Save the message
-	slog.Info("Saving the message to the user" + userID)
+	slog.Info("Sending the message to the user" + userID)
 	saveMessage(userID, hashedMessage, sharedSecret, signedMsg, encryptedMessage)
 }
 
@@ -91,8 +92,8 @@ func saveMessage(userID string, hash []byte, sharedSecret []byte, signedMessage 
 		}
 	}
 
-	fmt.Println("Saving message...", hex.EncodeToString(encryptedMessage))
-	slog.Info("Saving message to the user" + userID + hex.EncodeToString(encryptedMessage))
+	fmt.Println("Sending message...", hex.EncodeToString(encryptedMessage))
+	slog.Info("Sending message to the user" + userID + hex.EncodeToString(encryptedMessage))
 
 	encryptedMsg := map[string]interface{}{
 		"hash":             hex.EncodeToString(hash),
@@ -119,8 +120,8 @@ func saveMessage(userID string, hash []byte, sharedSecret []byte, signedMessage 
 		return
 	}
 
-	fmt.Println("Message saved successfully")
-	slog.Info("Message saved successfully" + userID)
+	fmt.Println("Message sent successfully")
+	slog.Info("Message sent successfully" + userID)
 }
 
 func hashSignMsg(userID string, message string) ([]byte, []byte) {
