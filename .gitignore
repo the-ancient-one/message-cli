@@ -2,3 +2,4 @@
 .env
 **/messages/**
 **/logs/**
+.DS_Store
