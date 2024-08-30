@@ -2,9 +2,13 @@ package common
 
 import (
 	"log/slog"
-	"message-cli/config"
 	"os"
 	"path/filepath"
+
+	"github.com/the-ancient-one/message-cli/config"
+
+	"github.com/mackerelio/go-osstat/cpu"
+	"github.com/mackerelio/go-osstat/memory"
 )
 
 func SetupLogger() *slog.Logger {
@@ -60,4 +64,18 @@ func CheckUserExists(directoryPath string) bool {
 		panic(err)
 	}
 	return fileInfo.IsDir()
+}
+
+func GetSystemStats() (*memory.Stats, *cpu.Stats, error) {
+	mem, err := memory.Get()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	cpu, err := cpu.Get()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return mem, cpu, nil
 }

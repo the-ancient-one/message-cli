@@ -4,8 +4,9 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"message-cli/common"
 	"os"
+
+	"github.com/the-ancient-one/message-cli/common"
 
 	"github.com/spf13/cobra"
 )

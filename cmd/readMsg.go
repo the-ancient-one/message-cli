@@ -7,12 +7,13 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"message-cli/common"
-	"message-cli/config"
-	"message-cli/msgcrypto"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/the-ancient-one/message-cli/common"
+	"github.com/the-ancient-one/message-cli/config"
+	"github.com/the-ancient-one/message-cli/msgcrypto"
 
 	"github.com/cloudflare/circl/kem/schemes"
 	"github.com/spf13/cobra"
@@ -48,7 +49,8 @@ var readMsgCmd = &cobra.Command{
 }
 
 func init() {
-	readMsgCmd.Flags().StringVarP(&userID, "userID", "u", "", "User ID")
+	readMsgCmd.Flags().StringVarP(&userID, "userID", "u", "", "User ID, readMsg command with flags sample 'readMsg -u=345'")
+	readMsgCmd.Flags().BoolP("help", "h", false, "This command only supports -u flag")
 	rootCmd.AddCommand(readMsgCmd)
 }
 

@@ -9,12 +9,14 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"message-cli/common"
-	"message-cli/config"
-	"message-cli/msgcrypto"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/the-ancient-one/message-cli/common"
+
+	"github.com/the-ancient-one/message-cli/config"
+	"github.com/the-ancient-one/message-cli/msgcrypto"
 
 	"github.com/cloudflare/circl/kem/schemes"
 	"github.com/cloudflare/circl/sign/dilithium"
@@ -63,6 +65,7 @@ func init() {
 	rootCmd.AddCommand(sendMsgCmd)
 	sendMsgCmd.Flags().StringVarP(&userID, "userID", "u", "", "User ID")
 	sendMsgCmd.Flags().StringVarP(&message, "message", "m", "", "Message to send")
+	sendMsgCmd.Flags().BoolP("help", "h", false, "command supports -u and -m flags, sample usage sendMsg -u=345 -m='Hello World'")
 }
 
 func SendMsg(userID string, message string) {

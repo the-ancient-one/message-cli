@@ -8,8 +8,9 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io"
-	"message-cli/config"
 	"os"
+
+	"github.com/the-ancient-one/message-cli/config"
 
 	"github.com/cloudflare/circl/kem"
 	"github.com/cloudflare/circl/kem/schemes"

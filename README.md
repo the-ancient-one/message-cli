@@ -2,6 +2,7 @@
 
 A MSc Dissertation work on the PQC messaging system using the Circl(Cloudflare) Digital Signature(Dilithium) and Key Encapsulation Mechanism (KEM)(Kyber) for acheving the cryptographic security. 
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/the-ancient-one/message-cli.svg)](https://pkg.go.dev/github.com/the-ancient-one/message-cli)
 
 ### $${\color{red}(Read \space the \space following \space file \space carefully!)}$$ 
 
