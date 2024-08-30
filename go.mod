@@ -3,7 +3,7 @@ module github.com/the-ancient-one/message-cli
 go 1.22.4
 
 require (
-	github.com/cloudflare/circl v1.3.9
+	github.com/cloudflare/circl v1.4.0
 	github.com/joho/godotenv v1.5.1
 	github.com/mackerelio/go-osstat v0.2.5
 	github.com/spf13/cobra v1.8.1
