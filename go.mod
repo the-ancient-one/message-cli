@@ -1,9 +1,9 @@
 module github.com/the-ancient-one/message-cli
 
-go 1.22.4
+go 1.25.0
 
 require (
-	github.com/cloudflare/circl v1.5.0
+	github.com/cloudflare/circl v1.6.5
 	github.com/joho/godotenv v1.5.1
 	github.com/mackerelio/go-osstat v0.2.5
 	github.com/spf13/cobra v1.8.1
@@ -13,6 +13,6 @@ require (
 require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	golang.org/x/crypto v0.21.0 // indirect
-	golang.org/x/sys v0.24.0 // indirect
+	golang.org/x/crypto v0.54.0 // indirect
+	golang.org/x/sys v0.47.0 // indirect
 )
